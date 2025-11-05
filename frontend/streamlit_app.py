@@ -5,7 +5,7 @@ import zipfile
 import requests
 import base64
 
-st.set_page_config(page_title="SnapShrink", page_icon="📸", layout="centered")
+st.set_page_config(page_title="Batchresizer", page_icon="📸", layout="centered")
 
 st.markdown(
     "<h1 style='text-align:center;color:#e4edec;margin-top:-40px;text-shadow:-3px 1px 5px #d3ccdb;'>SnapShrink – Batch Resizer</h1>",
@@ -29,8 +29,8 @@ preset = st.selectbox(
 
 quality = st.slider("Compressed quality", 60, 100, 85)
 
-# 🧩 IMPORTANT: update this AFTER you deploy backend on Vercel
-BACKEND_URL = "https://YOUR-VERCEL-BACKEND.vercel.app/compress"
+
+BACKEND_URL = "https://batchcompressor.vercel.app/compress"
 
 if uploaded_files:
     st.info(f"{len(uploaded_files)} file(s) uploaded. Click below to compress.")
