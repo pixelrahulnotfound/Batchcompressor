@@ -31,13 +31,27 @@ async def compress_images(
         if width and height:
             img = img.resize((width, height))
 
-        output = BytesIO()
-        img.save(output, format="JPEG", quality=quality, optimize=True)
-        compressed_bytes = output.getvalue()
+        current_quality = quality
+        min_quality = 20
+        new_size = float('inf')
+        compressed_bytes = None
 
-        new_size = len(compressed_bytes)
-        reduction = round(100 * (1 - new_size / original_size), 2)
-        encoded = base64.b64encode(compressed_bytes).decode("utf-8")
+        while new_size >= original_size and current_quality >= min_quality:
+            output = BytesIO()
+            img.save(output, format="JPEG", quality=current_quality, optimize=True)
+            compressed_bytes = output.getvalue()
+            new_size = len(compressed_bytes)
+
+            if new_size >= original_size:
+                current_quality -= 5
+        
+        if new_size >= original_size:
+            new_size = original_size
+            reduction = 0.0
+            encoded = base64.b64encode(contents).decode("utf-8")
+        else:
+            reduction = round(100 * (1 - new_size / original_size), 2)
+            encoded = base64.b64encode(compressed_bytes).decode("utf-8")
 
         results.append({
             "filename": file.filename,
@@ -46,5 +60,5 @@ async def compress_images(
             "reductionPercent": reduction,
             "compressedImageBase64": encoded
         })
+        
     return JSONResponse(content=results)
-
