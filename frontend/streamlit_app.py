@@ -5,8 +5,7 @@ import zipfile
 import requests
 import base64
 
-
-st.set_page_config(page_title="batchresizer", page_icon="📸", layout="centered")
+st.set_page_config(page_title="SnapShrink", page_icon="📸", layout="centered")
 
 st.markdown(
     "<h1 style='text-align:center;color:#e4edec;margin-top:-40px;text-shadow:-3px 1px 5px #d3ccdb;'>SnapShrink – Batch Resizer</h1>",
@@ -30,22 +29,19 @@ preset = st.selectbox(
 
 quality = st.slider("Compressed quality", 60, 100, 85)
 
-BACKEND_URL = "https://batchresizer-backend.onrender.com/compress"  # Change after deployment
+# 🧩 IMPORTANT: update this AFTER you deploy backend on Vercel
+BACKEND_URL = "https://YOUR-VERCEL-BACKEND.vercel.app/compress"
 
 if uploaded_files:
     st.info(f"{len(uploaded_files)} file(s) uploaded. Click below to compress.")
 
-    if st.button("Optimise all images"):
+    if st.button("🧠 Optimise all images"):
         files_to_send = [("files", (f.name, f.getvalue(), f.type)) for f in uploaded_files]
 
-        if preset == "Insta(1080x1080)":
-            width, height = 1080, 1080
-        elif preset == "Story (1080x1920)":
-            width, height = 1080, 1920
-        elif preset == "Twitter (1200x675)":
-            width, height = 1200, 675
-        else:
-            width, height = None, None
+        if preset == "Insta(1080x1080)": width, height = 1080, 1080
+        elif preset == "Story (1080x1920)": width, height = 1080, 1920
+        elif preset == "Twitter (1200x675)": width, height = 1200, 675
+        else: width, height = None, None
 
         with st.spinner("Processing images..."):
             res = requests.post(
@@ -60,13 +56,12 @@ if uploaded_files:
             total_compressed = sum(r["newSize"] for r in results)
             reduction = 100 * (1 - total_compressed / total_original)
 
-            st.success(f"Done!! Total size reduced by {reduction:.1f}%")
+            st.success(f"✅ Done! Total size reduced by {reduction:.1f}%")
 
             zip_buffer = BytesIO()
             with zipfile.ZipFile(zip_buffer, "w", compression=zipfile.ZIP_DEFLATED) as zipf:
                 for r in results:
-                    img_data = BytesIO()
-                    img_data.write(base64.b64decode(r["compressedImageBase64"]))
+                    img_data = BytesIO(base64.b64decode(r["compressedImageBase64"]))
                     zipf.writestr(r["filename"], img_data.getvalue())
 
                     with st.expander(r["filename"]):
@@ -79,11 +74,11 @@ if uploaded_files:
 
             zip_buffer.seek(0)
             st.download_button(
-                label="Download All as ZIP",
+                label="📦 Download All as ZIP",
                 data=zip_buffer,
-                file_name="compressedd_batch.zip",
+                file_name="snapshrink_batch.zip",
                 mime="application/zip",
             )
 
         else:
-            st.error("Error")
+            st.error("⚠️ Error: Could not reach backend or process images.")
