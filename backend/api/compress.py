@@ -4,6 +4,9 @@ from PIL import Image
 from io import BytesIO
 import base64
 
+# Import the Vercel adapter for ASGI
+from mangum import Mangum
+
 app = FastAPI()
 
 @app.post("/compress")
@@ -25,20 +28,23 @@ async def compress_images(
         if width and height:
             img = img.resize((width, height))
 
-        output = BytesIO()
-        img.save(output, format="JPEG", quality=quality, optimize=True)
-        compressed_bytes = output.getvalue()
+        out_buffer = BytesIO()
+        img.save(out_buffer, format="JPEG", quality=quality, optimize=True)
+        compressed_bytes = out_buffer.getvalue()
+
         new_size = len(compressed_bytes)
         reduction = round(100 * (1 - new_size / original_size), 2)
-
-        encoded = base64.b64encode(compressed_bytes).decode("utf-8")
+        encoded_img = base64.b64encode(compressed_bytes).decode("utf-8")
 
         results.append({
             "filename": file.filename,
             "originalSize": original_size,
             "newSize": new_size,
             "reductionPercent": reduction,
-            "compressedImageBase64": encoded
+            "compressedImageBase64": encoded_img
         })
 
     return JSONResponse(content=results)
+
+
+handler = Mangum(app)
