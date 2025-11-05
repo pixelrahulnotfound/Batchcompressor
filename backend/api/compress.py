@@ -5,7 +5,7 @@ from io import BytesIO
 import base64
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="SnapShrink API")
+app = FastAPI(title="Batchresizer API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,3 +47,4 @@ async def compress_images(
             "compressedImageBase64": encoded
         })
     return JSONResponse(content=results)
+
