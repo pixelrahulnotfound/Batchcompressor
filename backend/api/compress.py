@@ -1,11 +1,10 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse
-from mangum import Mangum
 from PIL import Image
 from io import BytesIO
 import base64
 
-app = FastAPI()
+app = FastAPI(title="SnapShrink API")
 
 @app.post("/compress")
 async def compress_images(
@@ -29,10 +28,12 @@ async def compress_images(
         out_buffer = BytesIO()
         img.save(out_buffer, format="JPEG", quality=quality, optimize=True)
         compressed_bytes = out_buffer.getvalue()
+
         new_size = len(compressed_bytes)
         reduction = round(100 * (1 - new_size / original_size), 2)
 
         encoded_img = base64.b64encode(compressed_bytes).decode("utf-8")
+
         results.append({
             "filename": file.filename,
             "originalSize": original_size,
@@ -42,6 +43,3 @@ async def compress_images(
         })
 
     return JSONResponse(content=results)
-
-# Netlify handler
-handler = Mangum(app)
